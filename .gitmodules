@@ -1,0 +1,3 @@
+[submodule "LoRaMesher"]
+	path = LoRaMesher
+	url = https://github.com/LoRaMesher/LoRaMesher
