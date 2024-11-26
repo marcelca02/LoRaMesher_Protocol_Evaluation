@@ -1,6 +1,0 @@
-[submodule "LoRaMesher"]
-	path = LoRaMesher
-	url = git@github.com:LoRaMesher/LoRaMesher.git
-[submodule "LoRaChat"]
-	path = LoRaChat
-	url = git@github.com:Jaimi5/LoRaChat.git
