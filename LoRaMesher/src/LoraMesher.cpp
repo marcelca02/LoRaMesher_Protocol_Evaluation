@@ -882,7 +882,7 @@ void LoraMesher::traceRoute(uint16_t dst) {
                 /* send nextTraceRoutePacket */
             }
         }
-        vPortFree(receivedPacket);
+        deletePacket(receivedPacket);
     }
     // Shoud delete queue when initializing loraMesher
     // vQueueDelete(xQueue);
@@ -905,19 +905,20 @@ void LoraMesher::processTraceRoutePacket(QueuePacket<ControlPacket>* pq) {
     //    -> TTL < 0, Can't happen, discard packet
 
     if (tracePayload->ttl == 0) {
-        // Queue the packet in the TR queue
+        // Notify user of TR packet
+        xQueueSend(traceRouteQueue, packet, 0);
         return;
     }
     tracePayload->ttl -= 1;
 
     if (tracePayload->ttl == 0) {
-        // Send back to src
+        /* Send back to src */
     }
     else if (tracePayload->ttl > 0) {
-        // FW to the next hop
+        /* FW to the next hop */
     }
     else {
-        // Delete packet
+        deletePacket(packet);
     }
 }
 
