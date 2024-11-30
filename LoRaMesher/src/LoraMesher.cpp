@@ -848,6 +848,45 @@ void LoraMesher::sendReliablePacket(uint16_t dst, uint8_t* payload, uint32_t pay
     notifyNewSequenceStarted();
 }
 
+QueueHandle_t traceRouteQueue = NULL;
+#define TRACE_ROUTE_QUEUE_MAX_SIZE  10
+
+void LoraMesher::traceRoute(uint16_t dst) {
+
+    /* Create trace route addresses array for returning? */
+
+    size_t traceRoutePacketSize = sizeof(ControlPacket) + sizeof(TraceRoutePayload);
+
+    // Every time we start a trace route we must create a queue for notifying the TR packets
+    traceRouteQueue = xQueueCreate(TRACE_ROUTE_QUEUE_MAX_SIZE ,traceRoutePacketSize);
+    
+    // Create the first TR packet with ttl = 1 and send it
+    uint8_t ttl = 1;
+    ControlPacket* firstTraceRoutePacket = PacketService::createTraceRoutePacket(dst, getLocalAddress(), ttl);
+    /* Send firstTraceRoutePacket */
+
+    // Manage recibed packets
+    ControlPacket* receivedPacket;
+    while (1 /* TIMEOUT */) {
+        ControlPacket* receivedPacket = (ControlPacket*)pvPortMalloc(sizeof(ControlPacket)+sizeof(TraceRoutePayload));
+        if (xQueueReceive(traceRouteQueue, receivedPacket, portMAX_DELAY) == pdPASS) {
+            TraceRoutePayload* tracePayload = reinterpret_cast<TraceRoutePayload*>(receivedPacket->payload);
+            if (tracePayload->newhop == dst) {
+                // Trace Route finished
+                break;
+            }
+            else {
+                /* Add receivedPacket->newHop to trace route addresses*/
+                ttl += 1;
+                ControlPacket* nextTraceRoutePacket = PacketService::createTraceRoutePacket(dst, getLocalAddress(), ttl);
+                /* send nextTraceRoutePacket */
+            }
+        }
+        vPortFree(receivedPacket);
+    }
+    vQueueDelete(xQueue);
+}
+
 void LoraMesher::processTraceRoutePacket(QueuePacket<ControlPacket>* pq) {
     ControlPacket* packet = pq->packet;
 

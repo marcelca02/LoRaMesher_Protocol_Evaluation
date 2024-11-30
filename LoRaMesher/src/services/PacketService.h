@@ -6,6 +6,7 @@
 #include "entities/packets/DataPacket.h"
 #include "entities/packets/AppPacket.h"
 #include "entities/packets/RoutePacket.h"
+#include "entities/packets/TraceRoutePayload.h"
 #include "services/RoleService.h"
 #include "BuildOptions.h"
 #include "PacketFactory.h"
