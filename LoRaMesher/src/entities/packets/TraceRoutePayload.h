@@ -7,8 +7,7 @@
 class TraceRoutePayload final {
 public:
     uint8_t ttl;
-    uint8_t hopCount;
-    uint16_t hops[];
+    uint16_t newhop;
 };
 #pragma pack()
 
