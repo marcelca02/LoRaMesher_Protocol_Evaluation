@@ -676,6 +676,8 @@ void LoraMesher::processPackets() {
                 }
                 else if (PacketService::isDataPacket(type))
                     processDataPacket(reinterpret_cast<QueuePacket<DataPacket>*>(rx));
+                else if (PacketService::isTraceRoutePacket(type))
+                    processTraceRoutePacket(reinterpret_cast<QueuePacket<ControlPacket>*>(rx);
                 else {
                     ESP_LOGV(LM_TAG, "Packet not identified, deleting it");
                     incReceivedNotForMe();
@@ -851,12 +853,32 @@ void LoraMesher::processTraceRoutePacket(QueuePacket<ControlPacket>* pq) {
 
     ESP_LOGV(LM_TAG, "Trace Route packet from %X, destination %X, via %X", packet->src, packet->dst, packet->via);
 
+    TraceRoutePayload* tracePayload = reinterpret_cast<TraceRoutePayload*>(packet->payload);
+
     // PROCESS THE TRACE ROUTE PACKET
     // - Check TTL
-    //    -> TTL == 0 -> Add local address to payload + send back to source
-    //    -> TTL > 0 -> Decrement TTL + forward to next hop
-    //        -> If next hop == null -> Send error
+    //    -> TTL == 0, notify the user and return
+    // - TTL - 1
+    // - Check TTL
+    //    -> TTL == 0, send back to src
+    //    -> TTL > 0, FW to the next hop
+    //    -> TTL < 0, Can't happen, discard packet
 
+    if (tracePayload->ttl == 0) {
+        // Queue the packet in the TR queue
+        return;
+    }
+    tracePayload->ttl -= 1;
+
+    if (tracePayload->ttl == 0) {
+        // Send back to src
+    }
+    else if (tracePayload->ttl > 0) {
+        // FW to the next hop
+    }
+    else {
+        // Delete packet
+    }
 }
 
 
