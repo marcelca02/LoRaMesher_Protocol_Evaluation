@@ -857,8 +857,8 @@ void LoraMesher::traceRoute(uint16_t dst) {
 
     size_t traceRoutePacketSize = sizeof(ControlPacket) + sizeof(TraceRoutePayload);
 
-    // Every time we start a trace route we must create a queue for notifying the TR packets
-    traceRouteQueue = xQueueCreate(TRACE_ROUTE_QUEUE_MAX_SIZE ,traceRoutePacketSize);
+    // Shoud create queue when initializing loraMesher
+    // traceRouteQueue = xQueueCreate(TRACE_ROUTE_QUEUE_MAX_SIZE ,traceRoutePacketSize);
     
     // Create the first TR packet with ttl = 1 and send it
     uint8_t ttl = 1;
@@ -884,7 +884,8 @@ void LoraMesher::traceRoute(uint16_t dst) {
         }
         vPortFree(receivedPacket);
     }
-    vQueueDelete(xQueue);
+    // Shoud delete queue when initializing loraMesher
+    // vQueueDelete(xQueue);
 }
 
 void LoraMesher::processTraceRoutePacket(QueuePacket<ControlPacket>* pq) {
