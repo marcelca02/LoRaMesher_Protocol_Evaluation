@@ -850,42 +850,53 @@ void LoraMesher::sendReliablePacket(uint16_t dst, uint8_t* payload, uint32_t pay
 
 QueueHandle_t traceRouteQueue = NULL;
 #define TRACE_ROUTE_QUEUE_MAX_SIZE  10
+#define TRACE_ROUTE_TIMEOUT 10000
 
-void LoraMesher::traceRoute(uint16_t dst) {
+std::vector<uint16_t> LoraMesher::traceRoute(uint16_t dst) {
 
-    /* Create trace route addresses array for returning? */
+    std::vector<uint16_t> traceRouteAddresses;
 
     size_t traceRoutePacketSize = sizeof(ControlPacket) + sizeof(TraceRoutePayload);
 
-    // Shoud create queue when initializing loraMesher
-    // traceRouteQueue = xQueueCreate(TRACE_ROUTE_QUEUE_MAX_SIZE ,traceRoutePacketSize);
+    traceRouteQueue = xQueueCreate(TRACE_ROUTE_QUEUE_MAX_SIZE ,traceRoutePacketSize);
+    if (!traceRouteQueue) {
+        ESP_LOGE(LM_TAG, "Failed to create trace route queue.");
+        return;
+    }
     
     // Create the first TR packet with ttl = 1 and send it
     uint8_t ttl = 1;
     ControlPacket* firstTraceRoutePacket = PacketService::createTraceRoutePacket(dst, getLocalAddress(), ttl);
-    /* Send firstTraceRoutePacket */
+    addToSendOrderedAndNotify(reinterpret_cast<QueuePacket<Packet<uint8_t>> *>(firstTraceRoutePacket));
 
     // Manage recibed packets
     ControlPacket* receivedPacket;
-    while (1) {
-        ControlPacket* receivedPacket = (ControlPacket*)pvPortMalloc(sizeof(ControlPacket)+sizeof(TraceRoutePayload));
-        if (xQueueReceive(traceRouteQueue, receivedPacket, portMAX_DELAY) == pdPASS) {
+    while (true) {
+        receivedPacket = (ControlPacket*)pvPortMalloc(sizeof(ControlPacket)+sizeof(TraceRoutePayload));
+        if (!receivedPacket) {
+            ESP_LOGE(LM_TAG, "Failed to allocate memory for received packet.");
+            break;
+        }
+
+        if (xQueueReceive(traceRouteQueue, receivedPacket, pdMS_TO_TICKS(TRACE_ROUTE_TIMEOUT)) == pdPASS) {
             TraceRoutePayload* tracePayload = reinterpret_cast<TraceRoutePayload*>(receivedPacket->payload);
+            /* Add address */
+            traceRouteAddresses.push_back(tracePayload->newHop);
             if (tracePayload->newhop == dst) {
-                // Trace Route finished
+                ESP_LOGI(LM_TAG, "Trace Route finished. Destination %X reached.", dst);
+                deletePacket(receivedPacket);
                 break;
             }
             else {
                 /* Add receivedPacket->newHop to trace route addresses*/
                 ttl += 1;
                 ControlPacket* nextTraceRoutePacket = PacketService::createTraceRoutePacket(dst, getLocalAddress(), ttl);
-                /* Send packet */
+                addToSendOrderedAndNotify(reinterpret_cast<QueuePacket<Packet<uint8_t>> *>(nextTraceRoutePacket));
             }
         }
         deletePacket(receivedPacket);
     }
-    // Shoud delete queue when initializing loraMesher
-    // vQueueDelete(xQueue);
+    vQueueDelete(traceRouteQueue);
 }
 
 void LoraMesher::processTraceRoutePacket(QueuePacket<ControlPacket>* pq) {
