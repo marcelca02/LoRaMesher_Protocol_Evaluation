@@ -896,6 +896,7 @@ std::vector<uint16_t> LoraMesher::traceRoute(uint16_t dst) {
         }
         deletePacket(receivedPacket);
     }
+    traceRouteAddresses.clear();
     vQueueDelete(traceRouteQueue);
 }
 
