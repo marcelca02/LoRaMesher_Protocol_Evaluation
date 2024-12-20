@@ -142,15 +142,10 @@ ControlPacket* PacketService::createEmptyControlPacket(uint16_t dst, uint16_t sr
 
 ControlPacket* PacketService::createTraceRoutePacket(uint16_t dst, uint16_t src, uint8_t ttl) {
     size_t payloadSize = sizeof(TraceRoutePayload);
-    size_t packetSize = sizeof(ControlPacket) + payloadSize;
 
     uint8_t type = TRACE_P;
 
-    ControlPacket* packet = PacketService::createControlPacket(payload, payloadSize)
-    packet->dst = dst;
-    packet->src = src;
-    packet->type = type;
-    packet->packetSize = packetSize;
+    ControlPacket* packet = PacketService::createControlPacket(dst, src, type, nullptr, payloadSize);
 
     TraceRoutePayload* tracePayload = reinterpret_cast<TraceRoutePayload*>(packet->payload);
     tracePayload->ttl = ttl; 

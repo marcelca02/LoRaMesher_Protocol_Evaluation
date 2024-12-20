@@ -55,6 +55,16 @@ public:
     static ControlPacket* createEmptyControlPacket(uint16_t dst, uint16_t src, uint8_t type, uint8_t seq_id, uint16_t num_packets);
 
     /**
+     * @brief Create a Trace Route Packet
+     *
+     * @param dst Destination address
+     * @param src Source address
+     * @param ttl Time to live
+     * @return ControlPacket*
+     */
+    static ControlPacket* createTraceRoutePacket(uint16_t dst, uint16_t src, uint8_t ttl);
+
+    /**
      * @brief Create a Data Packet
      *
      * @param dst Destination address
