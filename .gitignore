@@ -1,2 +1,6 @@
 LoRaMesher/.git/
 LoRaChat/.git/
+LoRaMesher/build
+.vscode
+sdkconfig
+LoRaChat/.vscode/settings.json
