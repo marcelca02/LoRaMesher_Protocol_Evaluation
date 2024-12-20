@@ -25,15 +25,7 @@ public:
 
     TraceRouteCommandService* traceRouteCommandService = new TraceRouteCommandService();
 
-    void init();
-
-    String traceRouteOn();
-
     String traceRouteOn(uint16_t dst);
-
-    String traceRouteOff();
-
-    String traceRouteOff(uint16_t dst);
 
     void createSendingTask();
 
@@ -45,13 +37,21 @@ public:
 
     void processReceivedMessage(messagePort port, DataMessage* message);
 
+    void createAndSendTraceRoute();
+
 private:
     
     TraceRoute() : MessageService(TraceRouteApp, "TraceRoute") {
         commandService = traceRouteCommandService;
     }
 
-    TraceRouteCommandService traceRouteCommandService;
+    TraceRouteCommand traceRouteCommandS; 
+    u_int32_t traceRouteValueS;
+    int16_t traceRouteDstS;
+    String traceRouteAddressesS;
+
+    uint8_t traceRouteId = 0;
+
 
     // More private variables for managing the service
     // More private functions for managing the service

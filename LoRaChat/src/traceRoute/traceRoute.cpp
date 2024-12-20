@@ -1,4 +1,5 @@
 #include "traceRoute.h"
+#include <vector>
 
 static const char* TAG = "traceRoute";
 
@@ -6,46 +7,82 @@ static const char* TRACE_ROUTE_TAG = "TraceRouteService";
 
 // LoRaChat default app methods
 
-void TraceRoute::init() {
-    pinMode(LED, OUTPUT);
-}
-
-String TraceRoute::traceRouteOn() {
-    digitalWrite(LED, LED_ON);
-    ESP_LOGV(TRACE_ROUTE_TAG, "Led On");
-    return "TraceRoute On";
-}
-
 String TraceRoute::traceRouteOn(uint16_t dst) {
-    ESP_LOGV(TRACE_ROUTE_TAG, "Led On to %X", dst);
-    if (dst == LoraMesher::getInstance().getLocalAddress())
-        return traceRouteOn();
-
-    DataMessage* msg = getTraceRouteMessage(TraceRouteCommand::POn, dst);
+    std::vector<uint16_t> addresses;
+    addresses = LoraMesher::getInstance().traceRoute(dst);
+    
+    DataMessage* msg = getTraceRouteMessage(TraceRouteCommand::TROn, dst);
     MessageManager::getInstance().sendMessage(messagePort::LoRaMeshPort, msg);
 
     delete msg;
 
-    return "TraceRoute On";
+    String ret; 
+
+    for (size_t i = 0; i < addresses.size(); ++i) {
+        ret += String(addresses[i]);
+        if (i < addresses.size() - 1) {
+            ret += ",";
+        }
+    }
+
+    return ret;
 }
 
-String TraceRoute::traceRouteOff() {
-    digitalWrite(LED, LED_OFF);
-    ESP_LOGV(TRACE_ROUTE_TAG, "Led Off");
-    return "TraceRoute Off";
+void TraceRoute::processReceivedMessage(messagePort port, DataMessage* message) {
+    TraceRouteMessage* traceRouteMessage = (TraceRouteMessage*) message; 
+
+    Log.infoln(F("FF: TraceRoute ::processReceivedMessage  perform local actions") );
+
+    traceRouteCommandS = traceRouteMessage->traceRouteCommand;
+    traceRouteValueS = traceRouteMessage->value;
+    traceRouteDstS = traceRouteMessage->traceRouteDst;
+    
+    Log.verboseln(F("FF in TraceRoute::processReceivedMessage traceRouteCommandService %d"),traceRouteCommandService);
+    Log.verboseln(F("FF in TraceRoute::processReceivedMessage traceRouteResult %d"),traceRouteValueS);
+
+
+    switch (traceRouteMessage->traceRouteCommand) {
+        case TraceRouteCommand::TROn:
+            traceRouteAddressesS = traceRouteOn(traceRouteDstS);
+            break;
+        case TraceRouteCommand::TROff:
+            break;
+        default:
+            break;
+    }
+    
+    Log.infoln(F("FF: TraceRoute::processReceivedMess  createAndSendTraceRoute()") );
+    createAndSendTraceRoute();
 }
 
-String TraceRoute::traceRouteOff(uint16_t dst) {
-    ESP_LOGV(TRACE_ROUTE_TAG, "Led Off to %X", dst);
-    if (dst == LoraMesher::getInstance().getLocalAddress())
-        return traceRouteOff();
+void TraceRoute::createAndSendTraceRoute() {
+    uint16_t messageWithHeaderSize = sizeof(TraceRouteMessage);// + metadataSensorSize;
 
-    DataMessage* msg = getTraceRouteMessage(TraceRouteCommand::POff, dst);
-    MessageManager::getInstance().sendMessage(messagePort::LoRaMeshPort, msg);
+    TraceRouteMessage* message = new TraceRouteMessage();  // FF: instead of malloc
 
-    delete msg;
+    Log.verboseln(F("FF Echo::createAndSendTraceRoute: Sending TraceRoute message"));
 
-    return "TraceRoute Off";
+    if (message) {
+
+        message->appPortDst = appPort::MQTTApp;
+        message->appPortSrc = appPort::TraceRouteApp;
+        message->addrSrc = LoraMesher::getInstance().getLocalAddress();
+        message->addrDst = 0;
+        message->messageId = traceRouteId++;
+
+        message->traceRouteCommand = traceRouteCommandS;  //FF added
+        message->value = traceRouteValueS;    //FF added
+        message->addresses = traceRouteAddressesS;
+
+        message->messageSize = messageWithHeaderSize - sizeof(DataMessageGeneric);
+
+        MessageManager::getInstance().sendMessage(messagePort::MqttPort, (DataMessage*) message);
+
+        delete message;
+    }
+    else {
+        Log.errorln(F("Failed to allocate memory for traceRoute message"));
+    }
 }
 
 String TraceRoute::getJSON(DataMessage* message) {
@@ -53,7 +90,6 @@ String TraceRoute::getJSON(DataMessage* message) {
     TraceRouteMessage* traceRouteMessage = (TraceRouteMessage*) message;
 
     StaticJsonDocument<400> doc;  // FF: was 200
-    //DynamicJsonDocument doc(400); // FF: do not make dynamic
 
     JsonObject data = doc.createNestedObject("data");
 
@@ -68,7 +104,6 @@ String TraceRoute::getJSON(DataMessage* message) {
 DataMessage* TraceRoute::getDataMessage(JsonObject data) {
     TraceRouteMessage* traceRouteMessage = new TraceRouteMessage();
     Log.infoln(F("TraceRoute::getDataMessage new TraceRouteMessage()") );
-    //Log.infoln(F("FF: Heap after new TraceRouteMessage() getFreeHeap() :%d"), ESP.getFreeHeap() );
     Log.infoln(F("FF: Heap after new TraceRouteMessage(): %d %d %d %d"),ESP.getFreeHeap(), ESP.getMinFreeHeap(), ESP.getHeapSize(), ESP.getMaxAllocHeap());
 
     traceRouteMessage->deserialize(data);  //FF commented.
