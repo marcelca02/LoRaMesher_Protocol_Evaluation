@@ -23,6 +23,8 @@
 
 #include "services/SimulatorService.h"
 
+#include <vector>
+
 /**
  * @brief LoRaMesher Library
  *
@@ -265,6 +267,13 @@ public:
      * @param payloadSize payload size to be send in Bytes
      */
     void sendReliablePacket(uint16_t dst, uint8_t* payload, uint32_t payloadSize);
+
+    /**
+     * @brief Start a Trace Route
+     *
+     * @param dst destination address
+     */
+    std::vector<uint16_t> traceRoute(uint16_t dst);
 
     /**
      * @brief Send the payload reliable. It will wait for an ack of the destination.
@@ -689,6 +698,13 @@ private:
      * @param pq packet queue to be processed as data packet
      */
     void processDataPacketForMe(QueuePacket<DataPacket>* pq);
+
+    /**
+     * @brief Process the trace route pacekt that destination is this node
+     *
+     * @param pq packet queue to be processed as trace route pacekt
+     */
+    void processTraceRoutePacket(QueuePacket<ControlPacket>* pq);
 
     /**
      * @brief Notifies the ReceivedUserData_TaskHandle that a packet has been arrived

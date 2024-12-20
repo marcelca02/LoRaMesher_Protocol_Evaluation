@@ -677,7 +677,7 @@ void LoraMesher::processPackets() {
                 else if (PacketService::isDataPacket(type))
                     processDataPacket(reinterpret_cast<QueuePacket<DataPacket>*>(rx));
                 else if (PacketService::isTraceRoutePacket(type))
-                    processTraceRoutePacket(reinterpret_cast<QueuePacket<ControlPacket>*>(rx);
+                    processTraceRoutePacket(reinterpret_cast<QueuePacket<ControlPacket>*>(rx));
                 else {
                     ESP_LOGV(LM_TAG, "Packet not identified, deleting it");
                     incReceivedNotForMe();
@@ -861,7 +861,7 @@ std::vector<uint16_t> LoraMesher::traceRoute(uint16_t dst) {
     traceRouteQueue = xQueueCreate(TRACE_ROUTE_QUEUE_MAX_SIZE ,traceRoutePacketSize);
     if (!traceRouteQueue) {
         ESP_LOGE(LM_TAG, "Failed to create trace route queue.");
-        return;
+        return traceRouteAddresses;
     }
     
     // Create the first TR packet with ttl = 1 and send it
@@ -881,23 +881,23 @@ std::vector<uint16_t> LoraMesher::traceRoute(uint16_t dst) {
         if (xQueueReceive(traceRouteQueue, receivedPacket, pdMS_TO_TICKS(TRACE_ROUTE_TIMEOUT)) == pdPASS) {
             TraceRoutePayload* tracePayload = reinterpret_cast<TraceRoutePayload*>(receivedPacket->payload);
             /* Add address */
-            traceRouteAddresses.push_back(tracePayload->newHop);
+            traceRouteAddresses.push_back(tracePayload->newhop);
             if (tracePayload->newhop == dst) {
                 ESP_LOGI(LM_TAG, "Trace Route finished. Destination %X reached.", dst);
-                deletePacket(receivedPacket);
+                free(receivedPacket);
                 break;
             }
             else {
-                /* Add receivedPacket->newHop to trace route addresses*/
+                /* Add receivedPacket->newhop to trace route addresses*/
                 ttl += 1;
                 ControlPacket* nextTraceRoutePacket = PacketService::createTraceRoutePacket(dst, getLocalAddress(), ttl);
                 addToSendOrderedAndNotify(reinterpret_cast<QueuePacket<Packet<uint8_t>> *>(nextTraceRoutePacket));
             }
         }
-        deletePacket(receivedPacket);
+        free(receivedPacket);
     }
-    traceRouteAddresses.clear();
     vQueueDelete(traceRouteQueue);
+    return traceRouteAddresses;
 }
 
 void LoraMesher::processTraceRoutePacket(QueuePacket<ControlPacket>* pq) {
@@ -938,13 +938,13 @@ void LoraMesher::processTraceRoutePacket(QueuePacket<ControlPacket>* pq) {
         packet->via = getLocalAddress();
         addToSendOrderedAndNotify(reinterpret_cast<QueuePacket<Packet<uint8_t>>*>(pq));
     }
-    else if (tracePayload->ttl > 0 && packet->via == getLocalAdress()) {
+    else if (tracePayload->ttl > 0 && packet->via == getLocalAddress()) {
         ESP_LOGV(LM_TAG, "Trace Route Packet from %X for %X. Via is me. Forwarding it", packet->src, packet->dst);
         addToSendOrderedAndNotify(reinterpret_cast<QueuePacket<Packet<uint8_t>>*>(pq));
     }
     else {
         ESP_LOGV(LM_TAG, "Trace Route Packet unexpected, discarding it");
-        deletePacket(packet);
+        free(packet);
     }
 }
 
