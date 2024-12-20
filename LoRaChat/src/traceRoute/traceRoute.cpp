@@ -7,6 +7,10 @@ static const char* TRACE_ROUTE_TAG = "TraceRouteService";
 
 // LoRaChat default app methods
 
+void TraceRoute::init() {
+    pinMode(LED, OUTPUT);
+}
+
 String TraceRoute::traceRouteOn(uint16_t dst) {
     std::vector<uint16_t> addresses;
     addresses = LoraMesher::getInstance().traceRoute(dst);

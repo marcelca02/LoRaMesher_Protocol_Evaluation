@@ -25,6 +25,8 @@ public:
 
     TraceRouteCommandService* traceRouteCommandService = new TraceRouteCommandService();
 
+    void init();
+
     String traceRouteOn(uint16_t dst);
 
     void createSendingTask();
