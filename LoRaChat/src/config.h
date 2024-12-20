@@ -129,6 +129,8 @@
 // MQTT_MON configuration
 #define MON_SENDING_EVERY 30000 //ms
 
+// TraceRoute Configuration
+#define TRACEROUTE_ENABLED
 
 // Battery configuration
 #define BATTERY_PIN 34

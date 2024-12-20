@@ -168,6 +168,18 @@ void initBluetooth() {
 #pragma endregion
 #endif
 
+#ifdef TRACEROUTE_ENABLED
+#pragma region TraceRoute 
+#include "traceRoute/traceRoute.h"
+
+TraceRoute& traceRoute= TraceRoute::getInstance();
+
+void initTraceRoute() {
+    traceRoute.init();
+}
+#pragma endregion
+#endif
+
 #pragma region Manager
 
 MessageManager& manager = MessageManager::getInstance();
