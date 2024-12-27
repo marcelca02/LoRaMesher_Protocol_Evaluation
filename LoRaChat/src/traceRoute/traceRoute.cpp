@@ -93,7 +93,7 @@ String TraceRoute::getJSON(DataMessage* message) {
     Log.verboseln(F("FF: TraceRoute::getJSON"));
     TraceRouteMessage* traceRouteMessage = (TraceRouteMessage*) message;
 
-    StaticJsonDocument<400> doc;  // FF: was 200
+    StaticJsonDocument<200> doc;  // FF: was 200
 
     JsonObject data = doc.createNestedObject("data");
 

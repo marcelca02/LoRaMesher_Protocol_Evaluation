@@ -156,6 +156,18 @@ void initGPS() {
 
 #pragma endregion
 
+#ifdef TRACEROUTE_ENABLED
+#pragma region TraceRoute
+#include "traceRoute/traceRoute.h"
+
+TraceRoute& traceRoute= TraceRoute::getInstance();
+
+void initTraceRoute() {
+     traceRoute.init();
+}
+#pragma endregion
+#endif
+
 #ifdef BLUETOOTH_ENABLED
 #pragma region SerialBT
 #include "bluetooth/bluetoothService.h"
@@ -165,18 +177,6 @@ void initBluetooth() {
     bluetoothService.initBluetooth(String(loraMeshService.getLocalAddress(), HEX));
 }
 
-#pragma endregion
-#endif
-
-#ifdef TRACEROUTE_ENABLED
-#pragma region TraceRoute 
-#include "traceRoute/traceRoute.h"
-
-TraceRoute& traceRoute= TraceRoute::getInstance();
-
-void initTraceRoute() {
-    traceRoute.init();
-}
 #pragma endregion
 #endif
 
