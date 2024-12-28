@@ -160,10 +160,10 @@ void initGPS() {
 #pragma region TraceRoute
 #include "traceRoute/traceRoute.h"
 
-TraceRoute& traceRoute= TraceRoute::getInstance();
+TraceRoute& traceRouteService = TraceRoute::getInstance();
 
 void initTraceRoute() {
-     traceRoute.init();
+     traceRouteService.init();
 }
 #pragma endregion
 #endif
@@ -222,6 +222,10 @@ void initManager() {
 
     manager.addMessageService(&displayService);
     ESP_LOGV(TAG, "Display service added to manager");
+
+    manager.addMessageService(&traceRouteService);
+    ESP_LOGV(TAG, "Trace Route service added to manager");
+
 
     Serial.println(manager.getAvailableCommands());
 }
