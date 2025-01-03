@@ -140,15 +140,24 @@ ControlPacket* PacketService::createEmptyControlPacket(uint16_t dst, uint16_t sr
     return packet;
 }
 
-ControlPacket* PacketService::createTraceRoutePacket(uint16_t dst, uint16_t src, uint8_t ttl) {
+ControlPacket* PacketService::createTraceRoutePacket(uint16_t dst, uint16_t src, int8_t ttl, int8_t id) {
     size_t payloadSize = sizeof(TraceRoutePayload);
 
-    uint8_t type = TRACE_P;
-
-    ControlPacket* packet = PacketService::createControlPacket(dst, src, type, nullptr, payloadSize);
-
-    TraceRoutePayload* tracePayload = reinterpret_cast<TraceRoutePayload*>(packet->payload);
+    uint8_t *tempPayload = static_cast<uint8_t *>(pvPortMalloc(payloadSize));
+    if (!tempPayload)
+    {
+        ESP_LOGE(LM_TAG, "Failed to allocate memory for payload");
+        return nullptr; 
+    }
+    TraceRoutePayload* tracePayload = reinterpret_cast<TraceRoutePayload*>(tempPayload);
     tracePayload->ttl = ttl; 
+    tracePayload->newhop = 0;
+    tracePayload->id = id;
+
+    uint8_t type = TRACE_P;
+    ControlPacket* packet = PacketService::createControlPacket(dst, src, type, tempPayload, payloadSize);
+
+    vPortFree(tempPayload);
 
     return packet;
 }

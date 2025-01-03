@@ -62,7 +62,7 @@ public:
      * @param ttl Time to live
      * @return ControlPacket*
      */
-    static ControlPacket* createTraceRoutePacket(uint16_t dst, uint16_t src, uint8_t ttl);
+    static ControlPacket* createTraceRoutePacket(uint16_t dst, uint16_t src, int8_t ttl, int8_t id);
 
     /**
      * @brief Create a Data Packet

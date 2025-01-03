@@ -3,7 +3,8 @@
 #pragma pack(1)
 class TraceRoutePayload final {
 public:
-    uint8_t ttl;
+    int8_t ttl;
     uint16_t newhop;
+    int8_t id;
 };
 #pragma pack()
