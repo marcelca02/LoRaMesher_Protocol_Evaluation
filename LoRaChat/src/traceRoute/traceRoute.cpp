@@ -12,6 +12,7 @@ void TraceRoute::init() {
 }
 
 String TraceRoute::traceRouteOn(uint16_t dst) {
+    Log.infoln(F("FF: TraceRoute ::traceRouteOn") );
     std::vector<uint16_t> addresses;
     addresses = LoraMesher::getInstance().traceRoute(dst);
     
@@ -38,11 +39,9 @@ void TraceRoute::processReceivedMessage(messagePort port, DataMessage* message) 
     Log.infoln(F("FF: TraceRoute ::processReceivedMessage  perform local actions") );
 
     traceRouteCommandS = traceRouteMessage->traceRouteCommand;
-    traceRouteValueS = traceRouteMessage->value;
     traceRouteDstS = traceRouteMessage->traceRouteDst;
     
     Log.verboseln(F("FF in TraceRoute::processReceivedMessage traceRouteCommandService %d"),traceRouteCommandService);
-    Log.verboseln(F("FF in TraceRoute::processReceivedMessage traceRouteResult %d"),traceRouteValueS);
 
 
     switch (traceRouteMessage->traceRouteCommand) {
@@ -70,12 +69,11 @@ void TraceRoute::createAndSendTraceRoute() {
 
         message->appPortDst = appPort::MQTTApp;
         message->appPortSrc = appPort::TraceRouteApp;
+        message->addrDst = 0;  
         message->addrSrc = LoraMesher::getInstance().getLocalAddress();
-        message->addrDst = 0;
         message->messageId = traceRouteId++;
 
-        message->traceRouteCommand = traceRouteCommandS;  //FF added
-        message->value = traceRouteValueS;    //FF added
+        message->value = 1;
         message->addresses = traceRouteAddressesS;
 
         message->messageSize = messageWithHeaderSize - sizeof(DataMessageGeneric);

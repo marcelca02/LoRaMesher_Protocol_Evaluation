@@ -24,8 +24,6 @@ public:
 
         // Add the derived class data to the JSON object
         
-        doc["traceRouteCommand"] = traceRouteCommand;
-        Log.verboseln(F("FF in class TraceRouteMessage: void serialize traceRouteCommand %d"), traceRouteCommand);
         doc["traceRouteResult"] = value;
         Log.verboseln(F("FF in class TraceRouteMessage: void serialize value %d"), value);
         doc["traceRouteAddresses"] = addresses;
@@ -42,8 +40,6 @@ public:
 
         traceRouteCommand = doc["traceRouteCommand"];
         Log.verboseln(F("FF in class traceRouteMessage: void deserialize %d"),traceRouteCommand );
-        value = doc["traceRoute"];
-        Log.verboseln(F("FF in class TraceRouteMessage: void deserialize %d"), value);
         traceRouteDst = doc["traceRouteDst"];
         Log.verboseln(F("FF in class TraceRouteMessage: void deserialize %d"), traceRouteDst);
         

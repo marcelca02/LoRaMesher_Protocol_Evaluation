@@ -104,14 +104,15 @@
 #define MAX_CONNECTION_TRY 10
 
 // WiFi credentials
-// #define WIFI_SSID "DIGIFIBRA-9EYA"
-// #define WIFI_PASSWORD "Se7HhAR9eyf9"
-#define WIFI_SSID "************"
-#define WIFI_PASSWORD "************"
+#define WIFI_SSID "DIGIFIBRA-9EYA"
+#define WIFI_PASSWORD "Se7HhAR9eyf9"
+// #define WIFI_SSID "*************"
+// #define WIFI_PASSWORD "***************"
 #define WIFI_OVERRIDE_CREDENTIALS //If defined, every time the device is reset it will set the wifi credentials.
 
 // MQTT configuration
 #define MQTT_SERVER "192.168.1.143" 
+// #define MQTT_SERVER "*************" 
 #define MQTT_PORT 1883
 #define MQTT_USERNAME "admin"
 #define MQTT_PASSWORD "public"
